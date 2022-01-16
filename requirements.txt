@@ -1,4 +1,4 @@
-# pandas
-# ipykernel
+pandas
+ipykernel
 opencv
-# matplotlib
+matplotlib
