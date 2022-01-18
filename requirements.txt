@@ -2,3 +2,4 @@ pandas
 ipykernel
 opencv
 matplotlib
+scikit-learn-intelex
