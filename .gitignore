@@ -1,3 +1,4 @@
 data/
 logs/
 .ipynb_checkpoints/
+loss_and_accuracy.*

@@ -1,4 +1,4 @@
-# Download Kaggle competition files
+### Download Kaggle competition files
 - create kaggle API Token on Kaggle.com; save under: ~/.kaggle/kaggle.json
 
 ```bash
@@ -14,7 +14,7 @@ kaggle datasets {list, files, download, create, version, init}
 kaggle kernels {list, init, push, pull, output, status}
 kaggle config {view, set, unset}
 
-# Create & activate conda env if you are running without docker
+### Create & activate conda env if you are running without docker
 ```bash
 conda create --name sartorius
 conda activate sartorius
@@ -25,7 +25,7 @@ conda install --file requirements.txt
 
 You may want to consider to reduce the total power consumption, and thereby reduce the vRAM may temp. To find the ideal configuration, observe your vRAM under heavy GPU load. Tooling on Linux is not good for doing so. I suggest you use windows HWinfo64
 ```bash
-sudo nvidia-smi -i 0 -pl 250
+sudo nvidia-smi -i 0 -pl 230
 watch -n 1 nvidia-smi
 ```
 
