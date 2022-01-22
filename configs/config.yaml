@@ -1,0 +1,13 @@
+tensorboard:
+  server_port: 6006
+  log_dir: logs
+
+processing:
+  TRANS_POWER: 2
+
+training:
+  LEARNING_RATE: 1e-4
+  VAL_SIZE: 0.1
+  BATCH_SIZE: 4
+  EPOCHS: 100
+  PATIENCE: 6
