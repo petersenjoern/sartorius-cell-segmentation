@@ -1,0 +1,10 @@
+paths:
+  data:
+    TRAIN_IMAGE_FOLDER: ./data/train
+    TRAIN_METADATA: ./data/train.csv
+
+RANDOM_STATE_N: 19
+
+tensorboard:
+  SERVER_PORT: 6006
+  LOG_DIR: logs

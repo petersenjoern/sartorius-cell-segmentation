@@ -1,16 +1,4 @@
-device:
-  gpu: 1
-
-tensorboard:
-  server_port: 6006
-  log_dir: logs
-
-processing:
-  TRANS_POWER: 2
-
-training:
-  LEARNING_RATE: 1e-7
-  VAL_SIZE: 0.1
-  BATCH_SIZE: 4
-  EPOCHS: 50
-  PATIENCE: 6
+defaults:
+  - project_setup: default
+  - preprocessing: default
+  - training: default
