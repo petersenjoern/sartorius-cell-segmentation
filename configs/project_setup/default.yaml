@@ -2,6 +2,8 @@ paths:
   data:
     TRAIN_IMAGE_FOLDER: ./data/train
     TRAIN_METADATA: ./data/train.csv
+  model:
+    MODEL_FOLDER: ./data/models
 
 RANDOM_STATE_N: 19
 
