@@ -79,7 +79,10 @@ def train(cfg: OmegaConf, model: tf.keras.models.Model, X: np.ndarray, y: np.nda
         embeddings_metadata=None,
     )
 
-    early_stop = EarlyStopping(monitor = 'val_loss', patience = cfg.training.model.PATIENCE, restore_best_weights = True)
+    early_stop=EarlyStopping(
+        monitor='val_loss',
+        patience=cfg.training.model.PATIENCE,
+        restore_best_weights=True)
     
     with tf.device(f'/device:GPU:{cfg.training.device.GPU}'):
         model.fit(
@@ -116,6 +119,7 @@ def main(cfg: OmegaConf):
     
     
 
+
+
 if __name__ == "__main__":
     main()
-    

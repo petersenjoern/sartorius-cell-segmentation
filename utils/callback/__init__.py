@@ -1,3 +1,6 @@
+import tensorflow as tf
+from tensorflow.keras.callbacks import Callback
+import matplotlib.pyplot as plt
 
 class LRFinder(Callback):
     """Callback that exponentially adjusts the learning rate after each training batch between start_lr and
@@ -51,7 +54,7 @@ class LRFinder(Callback):
         return self.start_lr * (self.end_lr / self.start_lr) ** (step * 1. / self.max_steps)
 
     def plot(self):
-        fig, ax = plt.subplots(1, 1)
+        _, ax = plt.subplots(1, 1)
         ax.set_ylabel('Loss')
         ax.set_xlabel('Learning Rate (log scale)')
         ax.set_xscale('log')
