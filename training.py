@@ -23,7 +23,7 @@ PATH_PARENT = pathlib.Path(__file__).absolute().parents[0]
 def prepare_X_and_y(cfg: OmegaConf, ids_and_images: Dict[str, str], metadata: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
     """ Prepare X and y"""
 
-    image_ids = list(ids_and_images.keys())[:5]
+    image_ids = list(ids_and_images.keys())
     np.random.shuffle(image_ids)
 
     X = []
