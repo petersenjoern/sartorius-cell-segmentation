@@ -36,3 +36,8 @@ docker build -t sartorius-tf .
 ```bash
 docker run -it --rm -v $(realpath ~/repos/sartorius-cell-segmentation):/tf/notebooks --runtime=nvidia -p 8888:8888 -p 6006:6006 sartorius-tf
 ```
+
+To use Tensorboard from the container above:
+- run the container, expose port 6006 (-p 6006:6006)
+- attach shell to the container, in the dir run  ```bash tensorboard --logdir=logs --bind_all```
+- browse to localhost:6006
