@@ -2,5 +2,6 @@ data/
 outputs/
 logs/
 .ipynb_checkpoints/
-__pycache__/
+*__pycache__/
+*__pycache__*
 loss_and_accuracy.*

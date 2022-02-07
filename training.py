@@ -23,7 +23,7 @@ PATH_PARENT = pathlib.Path(__file__).absolute().parents[0]
 def prepare_X_and_y(cfg: OmegaConf, ids_and_images: Dict[str, str], metadata: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
     """ Prepare X and y"""
 
-    image_ids = list(ids_and_images.keys())
+    image_ids = list(ids_and_images.keys())[:5]
     np.random.shuffle(image_ids)
 
     X = []
@@ -95,7 +95,7 @@ def train(cfg: OmegaConf, model: tf.keras.models.Model, X: np.ndarray, y: np.nda
         model.save("model")
 
 @hydra.main(config_path="configs", config_name="config")
-def main(cfg: OmegaConf):
+def main(cfg: OmegaConf, preprocess_data: bool = True):
     """ Compose flow and execute"""
     
     print(cfg) # make this a logger
@@ -103,23 +103,23 @@ def main(cfg: OmegaConf):
     PATH_TRAIN_IMAGE_FOLDER = PATH_PARENT.joinpath(cfg.project_setup.paths.data.TRAIN_IMAGE_FOLDER)
     PATH_TRAIN_METADATA = PATH_PARENT.joinpath(cfg.project_setup.paths.data.TRAIN_METADATA)
     INPUT_IMG_SHAPE = (cfg.preprocessing.INPUT_SHAPE.HEIGHT, cfg.preprocessing.INPUT_SHAPE.WIDTH)
-
+    PATH_CACHE_X_y = PATH_PARENT.joinpath(cfg.project_setup.paths.data.PREPROCESSED_CACHE)
 
     # load all train images into memory as dictionary with image_id as key and the image (np.ndarray) as value
-    train_metadata = pd.read_csv(PATH_TRAIN_METADATA)
-    train_images_paths = get_items_on_path(PATH_TRAIN_IMAGE_FOLDER)
-    train_images = [get_image_and_reshape(train_image_path, INPUT_IMG_SHAPE) for train_image_path in train_images_paths]
-    train_images_dict = {image_id: image for image, image_id in train_images}
-    
-    X, y = prepare_X_and_y(cfg=cfg, ids_and_images=train_images_dict, metadata=train_metadata)
-    
+    if preprocess_data:
+        train_metadata = pd.read_csv(PATH_TRAIN_METADATA)
+        train_images_paths = get_items_on_path(PATH_TRAIN_IMAGE_FOLDER)
+        train_images = [get_image_and_reshape(train_image_path, INPUT_IMG_SHAPE) for train_image_path in train_images_paths]
+        train_images_dict = {image_id: image for image, image_id in train_images}
+        X, y = prepare_X_and_y(cfg=cfg, ids_and_images=train_images_dict, metadata=train_metadata)
+        np.savez_compressed(PATH_CACHE_X_y, X=X, y=y)
+
+    loaded = np.load(PATH_CACHE_X_y)
     model=unet_model(input_img_shape=(cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1))
     model.compile(optimizer = Adam(cfg.training.model.LEARNING_RATE), loss = 'binary_crossentropy', metrics = ['accuracy'])
     train(cfg, model, X, y)
     
     
-
-
 
 if __name__ == "__main__":
     main()

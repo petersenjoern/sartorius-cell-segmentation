@@ -2,6 +2,7 @@ paths:
   data:
     TRAIN_IMAGE_FOLDER: ./data/train
     TRAIN_METADATA: ./data/train.csv
+    PREPROCESSED_CACHE: ./data/preprocessed/X_y.npz
   model:
     MODEL_FOLDER: ./data/models
 

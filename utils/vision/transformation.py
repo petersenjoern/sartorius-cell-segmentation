@@ -55,6 +55,16 @@ def grayscale_mask(annots: str, shape: Tuple[int, int, int]) -> np.ndarray:
     return grayscale_mask.clip(0, 1)
 
 
+def rgb_mask(annots: str, shape: Tuple[int, int, int]) -> np.ndarray:
+    """ Create RGB mask from rle-mask(s). run-length-mask are encoded as string (start length)"""
+
+    rgb_mask = np.zeros((shape[0], shape[1], shape[2]))
+    
+    for annot in annots:
+        rgb_mask += rle_decode(mask_rle=annot, shape=shape, color=np.random.rand(3))
+    
+    return rgb_mask.clip(0, 1)
+
 def transform_image_contrast(img_data: np.ndarray, power:int = 2) -> np.ndarray:
     img_data_mask = np.ones_like(img_data, dtype = np.int16)
     img_data_mask[img_data < 127.5] = -1
