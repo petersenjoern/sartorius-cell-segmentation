@@ -10,6 +10,7 @@ def get_image_and_reshape(path_single_image: pathlib, image_shape: Tuple[int, in
     image=cv2.imread(str(path_single_image), cv2.IMREAD_GRAYSCALE) #cv2 imread takes only str
     return image.reshape(*image_shape, 1), image_id
 
+
 def rle_decode(mask_rle: str,  shape: Tuple[int, int, int], color: int = 1) -> np.ndarray:
     """
     Run-Length decoding.
