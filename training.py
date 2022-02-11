@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import cv2
+import pickle
 import pathlib
 from utils.misc import get_items_on_path
 from utils.vision.transformation import get_image_and_reshape, transform_image_contrast, grayscale_mask
@@ -52,7 +53,7 @@ def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path], images_shape:
         image_id: {
             "X": {"image_raw": image, "X_transformed": None}, 
             "y": {"rle_raw": None, "y_transformed": None}
-        } for image, image_id in images_and_ids[:5]}
+        } for image, image_id in images_and_ids}
     
     for image_id in data_dict:
         # get and save rle_encoding for image
@@ -97,47 +98,59 @@ def transform_y(cfg: OmegaConf, rle_mask: List[str]) -> np.ndarray:
     return prepared_y_3d_binary
         
 
-def prepare_X_and_y(cfg: OmegaConf, ids_and_images: Dict[str, str], metadata: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-    """ Prepare X and y"""
-
-    image_ids = list(ids_and_images.keys())[:5]
-    np.random.shuffle(image_ids)
-
-    X = []
-    y = []
-
-    for imd_id in image_ids:
-
-        # prepare X
-        image = ids_and_images[imd_id]
-        prepared_x_2d = cv2.resize(
-            transform_image_contrast(image, cfg.preprocessing.TRANS_POWER), 
-            (cfg.preprocessing.OUTPUT_SHAPE.WIDTH, cfg.preprocessing.OUTPUT_SHAPE.HEIGHT)
-        )
-        prepared_x_3d = prepared_x_2d.reshape(
-            cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1
-        )
-        X.append(prepared_x_3d)
-
-        
-        # prepare y
-        annots=metadata[metadata["id"] == imd_id]["annotation"].tolist()
-        prepared_y_2d = cv2.resize(
-            grayscale_mask(
-                annots,
-                (cfg.preprocessing.INPUT_SHAPE.HEIGHT, cfg.preprocessing.INPUT_SHAPE.WIDTH, 1)
-            ),
-            (cfg.preprocessing.OUTPUT_SHAPE.WIDTH, cfg.preprocessing.OUTPUT_SHAPE.HEIGHT)
-        )
-        prepared_y_3d = prepared_y_2d.reshape(
-            cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1
-        )
-        y.append(prepared_y_3d)
-
+def prepare_X_and_y(data: X_and_y) -> Tuple[np.ndarray, np.ndarray]:
+    """Flatten the data dictionary of X and y"""
+    
+    X = [data[image_id]["X"]["X_transformed"] for image_id in data]
+    y = [data[image_id]["y"]["y_transformed"] for image_id in data]
+    
     X = np.array(X)
     y = np.array(y)
-    y = Binarizer().transform(y.reshape(-1, 1)).reshape(y.shape) # make y (segmentation labels) binary
+    
     return X, y
+    
+    
+# def prepare_X_and_y(cfg: OmegaConf, ids_and_images: Dict[str, str], metadata: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
+#     """ Prepare X and y"""
+
+#     image_ids = list(ids_and_images.keys())[:5]
+#     np.random.shuffle(image_ids)
+
+#     X = []
+#     y = []
+
+#     for imd_id in image_ids:
+
+#         # prepare X
+#         image = ids_and_images[imd_id]
+#         prepared_x_2d = cv2.resize(
+#             transform_image_contrast(image, cfg.preprocessing.TRANS_POWER), 
+#             (cfg.preprocessing.OUTPUT_SHAPE.WIDTH, cfg.preprocessing.OUTPUT_SHAPE.HEIGHT)
+#         )
+#         prepared_x_3d = prepared_x_2d.reshape(
+#             cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1
+#         )
+#         X.append(prepared_x_3d)
+
+        
+#         # prepare y
+#         annots=metadata[metadata["id"] == imd_id]["annotation"].tolist()
+#         prepared_y_2d = cv2.resize(
+#             grayscale_mask(
+#                 annots,
+#                 (cfg.preprocessing.INPUT_SHAPE.HEIGHT, cfg.preprocessing.INPUT_SHAPE.WIDTH, 1)
+#             ),
+#             (cfg.preprocessing.OUTPUT_SHAPE.WIDTH, cfg.preprocessing.OUTPUT_SHAPE.HEIGHT)
+#         )
+#         prepared_y_3d = prepared_y_2d.reshape(
+#             cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1
+#         )
+#         y.append(prepared_y_3d)
+
+#     X = np.array(X)
+#     y = np.array(y)
+#     y = Binarizer().transform(y.reshape(-1, 1)).reshape(y.shape) # make y (segmentation labels) binary
+#     return X, y
 
 
 def train(cfg: OmegaConf, model: tf.keras.models.Model, X: np.ndarray, y: np.ndarray) -> None:
@@ -187,16 +200,16 @@ def main(cfg: OmegaConf, preprocess_data_and_cache: bool = True):
     if preprocess_data_and_cache:
         train_metadata = pd.read_csv(PATH_TRAIN_METADATA)
         train_images_paths = get_items_on_path(PATH_TRAIN_IMAGE_FOLDER)
-        train_data = data_pipeline(cfg=cfg, images_path=train_images_paths, images_shape= INPUT_IMG_SHAPE, metadata=train_metadata)
+        train_data = data_pipeline(cfg=cfg, images_path=train_images_paths, 
+                                   images_shape= INPUT_IMG_SHAPE, metadata=train_metadata)
+        with open(PATH_CACHE_DATA, 'wb') as f:
+            pickle.dump(train_data, f, protocol=5)
+    else:
+        with open(PATH_CACHE_DATA, 'rb') as f:
+            train_data = pickle.load(f)
         
-        # TODO: save the train_data
-        
-        # load the train_data again
-        # TODO: prepare x and y from the train_data
-        # X, y = prepare_X_and_y(cfg=cfg, ids_and_images=train_images_dict, metadata=train_metadata)
-        
+    X, y = prepare_X_and_y(train_data)
 
-    # loaded = np.load(PATH_CACHE_X_y)
     model=unet_model(input_img_shape=(cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1))
     model.compile(optimizer = Adam(cfg.training.model.LEARNING_RATE), loss = 'binary_crossentropy', metrics = ['accuracy'])
     train(cfg, model, X, y)
