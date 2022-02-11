@@ -10,7 +10,7 @@ from utils.vision.models import unet_model
 import hydra
 from omegaconf import OmegaConf
 
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, TypedDict
 from sklearn.preprocessing import Binarizer
 
 import tensorflow as tf
@@ -20,19 +20,39 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 PATH_PARENT = pathlib.Path(__file__).absolute().parents[0]
 
+class y_holder(TypedDict):
+    """Holds raw RLE masks and binary masks"""
+    rle_raw: str
+    y_transformed: np.ndarray
+
+class X_holder(TypedDict):
+    """Holds raw and transformed images """
+    image_raw: np.ndarray
+    X_transformed: np.ndarray
+
+class X_and_y(TypedDict):
+    """Struct for holding X and y unprocessed and preprocessed data"""
+    X: X_holder
+    y: y_holder
+
+
 # create typeddict for return value
-def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path], images_shape: Tuple[int, int], metadata: pd.DataFrame) -> dict:
-    """ xxxxxxx"""
+def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path], images_shape: Tuple[int, int], metadata: pd.DataFrame) -> X_and_y:
+    """
+    Data pipelines to structure every image and its mask, keeping the raw data and the transformed data.
+    Raw data used for exploration and hence enabling feature engineering that goes eventually into the transformed data.
+    Transformed are the invidiual X and y structures, ready to be used in a trainings/ validation set.
+    """
     
-    images_and_ids: List[np.ndarray, str] = [get_image_and_reshape(image_path, images_shape) for image_path in images_path]
+    images_and_ids: List[np.ndarray, str] = [get_image_and_reshape(image_path, images_shape) 
+                                            for image_path in images_path]
     
     # create structure of data storage
-    # TODO: use typeddict here
-    data_dict = {
+    data_dict: X_and_y = {
         image_id: {
             "X": {"image_raw": image, "X_transformed": None}, 
             "y": {"rle_raw": None, "y_transformed": None}
-        } for image, image_id in images_and_ids}
+        } for image, image_id in images_and_ids[:5]}
     
     for image_id in data_dict:
         # get and save rle_encoding for image
@@ -41,16 +61,16 @@ def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path], images_shape:
         data_dict[image_id]["y"]["rle_raw"] = annots
         
         # transform X
-        data_dict[image_id]["X"]["X_transformed"] = preprocess_X(cfg=cfg, image=data_dict[image_id]["X"]["image_raw"])
+        data_dict[image_id]["X"]["X_transformed"] = transform_X(cfg=cfg, image=data_dict[image_id]["X"]["image_raw"])
         
         # transform y
-        data_dict[image_id]["y"]["y_transformed"] = preprocess_y(cfg=cfg, rle_mask=data_dict[image_id]["y"]["rle_raw"])
+        data_dict[image_id]["y"]["y_transformed"] = transform_y(cfg=cfg, rle_mask=data_dict[image_id]["y"]["rle_raw"])
         
     return data_dict
 
 
-def preprocess_X(cfg: OmegaConf, image: np.ndarray) -> np.ndarray:
-    """xxxx"""
+def transform_X(cfg: OmegaConf, image: np.ndarray) -> np.ndarray:
+    """Transforms the image and reshaping into 3D structure."""
     
     prepared_x_2d = cv2.resize(
         transform_image_contrast(image, cfg.preprocessing.TRANS_POWER), 
@@ -62,8 +82,8 @@ def preprocess_X(cfg: OmegaConf, image: np.ndarray) -> np.ndarray:
     return prepared_x_3d
 
 
-def preprocess_y(cfg: OmegaConf, rle_mask: List[str]) -> np.ndarray:
-    """yyyy"""
+def transform_y(cfg: OmegaConf, rle_mask: List[str]) -> np.ndarray:
+    """Transforms the label, ready to be used in training"""
     
     prepared_y_2d = cv2.resize(
         grayscale_mask(rle_mask, (cfg.preprocessing.INPUT_SHAPE.HEIGHT, cfg.preprocessing.INPUT_SHAPE.WIDTH, 1)),
@@ -72,8 +92,9 @@ def preprocess_y(cfg: OmegaConf, rle_mask: List[str]) -> np.ndarray:
     prepared_y_3d = prepared_y_2d.reshape(
         cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1
         )
-    # TODO: binarize the data
-    return prepared_y_3d
+    prepared_y_3d_binary = Binarizer().transform(prepared_y_3d.reshape(-1, 1)).reshape(prepared_y_3d.shape)
+
+    return prepared_y_3d_binary
         
 
 def prepare_X_and_y(cfg: OmegaConf, ids_and_images: Dict[str, str], metadata: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
@@ -98,6 +119,7 @@ def prepare_X_and_y(cfg: OmegaConf, ids_and_images: Dict[str, str], metadata: pd
         )
         X.append(prepared_x_3d)
 
+        
         # prepare y
         annots=metadata[metadata["id"] == imd_id]["annotation"].tolist()
         prepared_y_2d = cv2.resize(
@@ -170,7 +192,7 @@ def main(cfg: OmegaConf, preprocess_data_and_cache: bool = True):
         
         # load the train_data again
         # TODO: prepare x and y from the train_data
-        X, y = prepare_X_and_y(cfg=cfg, ids_and_images=train_images_dict, metadata=train_metadata)
+        # X, y = prepare_X_and_y(cfg=cfg, ids_and_images=train_images_dict, metadata=train_metadata)
         
 
     # loaded = np.load(PATH_CACHE_X_y)
