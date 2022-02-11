@@ -188,6 +188,7 @@ def main(cfg: OmegaConf, preprocess_data_and_cache: bool = True):
         train_metadata = pd.read_csv(PATH_TRAIN_METADATA)
         train_images_paths = get_items_on_path(PATH_TRAIN_IMAGE_FOLDER)
         train_data = data_pipeline(cfg=cfg, images_path=train_images_paths, images_shape= INPUT_IMG_SHAPE, metadata=train_metadata)
+        
         # TODO: save the train_data
         
         # load the train_data again
