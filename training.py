@@ -11,7 +11,7 @@ from utils.vision.models import unet_model
 import hydra
 from omegaconf import OmegaConf
 
-from typing import Tuple, Dict, List, TypedDict
+from typing import Tuple, List, TypedDict, Optional
 from sklearn.preprocessing import Binarizer
 
 import tensorflow as tf
@@ -38,7 +38,9 @@ class X_and_y(TypedDict):
 
 
 # create typeddict for return value
-def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path], images_shape: Tuple[int, int], metadata: pd.DataFrame) -> X_and_y:
+def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path],
+                  images_shape: Tuple[int, int], metadata: Optional[pd.DataFrame] = None, 
+                  prepare_y: bool =True) -> X_and_y:
     """
     Data pipelines to structure every image and its mask, keeping the raw data and the transformed data.
     Raw data used for exploration and hence enabling feature engineering that goes eventually into the transformed data.
@@ -56,17 +58,21 @@ def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path], images_shape:
         } for image, image_id in images_and_ids}
     
     for image_id in data_dict:
-        # get and save rle_encoding for image
-        df_row=metadata[metadata["id"] == image_id]
-        annots=df_row["annotation"].tolist()
-        data_dict[image_id]["y"]["rle_raw"] = annots
         
         # transform X
         data_dict[image_id]["X"]["X_transformed"] = transform_X(cfg=cfg, image=data_dict[image_id]["X"]["image_raw"])
         
-        # transform y
-        data_dict[image_id]["y"]["y_transformed"] = transform_y(cfg=cfg, rle_mask=data_dict[image_id]["y"]["rle_raw"])
-        
+        if prepare_y:
+            # get and save rle_encoding for image
+            if not metadata:
+                raise Exception("metadata for rle have not been passed to the function")
+            df_row=metadata[metadata["id"] == image_id]
+            annots=df_row["annotation"].tolist()
+            data_dict[image_id]["y"]["rle_raw"] = annots
+            
+            # transform y
+            data_dict[image_id]["y"]["y_transformed"] = transform_y(cfg=cfg, rle_mask=data_dict[image_id]["y"]["rle_raw"])
+            
     return data_dict
 
 
@@ -108,49 +114,6 @@ def prepare_X_and_y(data: X_and_y) -> Tuple[np.ndarray, np.ndarray]:
     y = np.array(y)
     
     return X, y
-    
-    
-# def prepare_X_and_y(cfg: OmegaConf, ids_and_images: Dict[str, str], metadata: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-#     """ Prepare X and y"""
-
-#     image_ids = list(ids_and_images.keys())[:5]
-#     np.random.shuffle(image_ids)
-
-#     X = []
-#     y = []
-
-#     for imd_id in image_ids:
-
-#         # prepare X
-#         image = ids_and_images[imd_id]
-#         prepared_x_2d = cv2.resize(
-#             transform_image_contrast(image, cfg.preprocessing.TRANS_POWER), 
-#             (cfg.preprocessing.OUTPUT_SHAPE.WIDTH, cfg.preprocessing.OUTPUT_SHAPE.HEIGHT)
-#         )
-#         prepared_x_3d = prepared_x_2d.reshape(
-#             cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1
-#         )
-#         X.append(prepared_x_3d)
-
-        
-#         # prepare y
-#         annots=metadata[metadata["id"] == imd_id]["annotation"].tolist()
-#         prepared_y_2d = cv2.resize(
-#             grayscale_mask(
-#                 annots,
-#                 (cfg.preprocessing.INPUT_SHAPE.HEIGHT, cfg.preprocessing.INPUT_SHAPE.WIDTH, 1)
-#             ),
-#             (cfg.preprocessing.OUTPUT_SHAPE.WIDTH, cfg.preprocessing.OUTPUT_SHAPE.HEIGHT)
-#         )
-#         prepared_y_3d = prepared_y_2d.reshape(
-#             cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1
-#         )
-#         y.append(prepared_y_3d)
-
-#     X = np.array(X)
-#     y = np.array(y)
-#     y = Binarizer().transform(y.reshape(-1, 1)).reshape(y.shape) # make y (segmentation labels) binary
-#     return X, y
 
 
 def train(cfg: OmegaConf, model: tf.keras.models.Model, X: np.ndarray, y: np.ndarray) -> None:
@@ -186,7 +149,7 @@ def train(cfg: OmegaConf, model: tf.keras.models.Model, X: np.ndarray, y: np.nda
         model.save("model")
 
 @hydra.main(config_path="configs", config_name="config")
-def main(cfg: OmegaConf, preprocess_data_and_cache: bool = True):
+def main(cfg: OmegaConf, preprocess_data_and_cache: bool = False):
     """ Compose flow and execute"""
     
     print(cfg) # make this a logger

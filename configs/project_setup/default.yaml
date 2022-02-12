@@ -3,6 +3,7 @@ paths:
     TRAIN_IMAGE_FOLDER: ./data/train
     TRAIN_METADATA: ./data/train.csv
     PREPROCESSED_CACHE: ./data/preprocessed/X_and_y.pkl
+    TEST_IMAGE_FOLDER: ./data/test
   model:
     MODEL_FOLDER: ./data/models
 
