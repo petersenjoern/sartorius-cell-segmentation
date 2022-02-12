@@ -38,6 +38,33 @@ docker run -it --rm -v $(realpath ~/repos/sartorius-cell-segmentation):/tf/noteb
 ```
 
 To use Tensorboard from the container above:
-- run the container, expose port 6006 (-p 6006:6006)
-- attach shell to the container, in the dir run  ```bash tensorboard --logdir=outputs --bind_all```
-- browse to localhost:6006
+1. run the container, expose port 6006 (-p 6006:6006)
+2. attach shell to the container, in the dir run  ```bash tensorboard --logdir=outputs --bind_all```
+3. browse to localhost:6006
+
+### Training with hydra configuration:
+
+inspect current config without running training:
+```bash
+python training.py --cfg job
+```
+or
+```bash
+python training.py --info config
+```
+
+inspect new overwritten config without running training:
+```bash
+python training.py training.model.EPOCHS=100 training.model.BATCH_SIZE=10 --cfg job
+```
+
+run with verbose logging:
+```bash
+python training.py hydra.verbose=[__main__]
+```
+
+Multi-run:
+```bash
+python training.py -m training=exp_0, exp_1
+```
+

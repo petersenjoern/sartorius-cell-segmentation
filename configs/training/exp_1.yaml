@@ -2,8 +2,8 @@ device:
   GPU: 1
 
 model:
-  LEARNING_RATE: 1e-4
+  LEARNING_RATE: 1e-5
   VAL_SIZE: 0.1
-  BATCH_SIZE: 4
-  EPOCHS: 20
+  BATCH_SIZE: 10
+  EPOCHS: 80
   PATIENCE: 6

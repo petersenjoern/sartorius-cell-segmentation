@@ -1,4 +1,4 @@
 defaults:
   - project_setup: default
   - preprocessing: default
-  - training: default
+  - training: exp_0

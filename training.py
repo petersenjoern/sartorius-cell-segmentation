@@ -1,24 +1,29 @@
 """ Training model for sartorius competition"""
 
-import pandas as pd
-import numpy as np
 import cv2
 import pickle
 import pathlib
-from utils.misc import get_items_on_path
-from utils.vision.transformation import get_image_and_reshape, transform_image_contrast, grayscale_mask
-from utils.vision.models import unet_model
-import hydra
-from omegaconf import OmegaConf
+import logging
+
+import pandas as pd
+import numpy as np
 
 from typing import Tuple, List, TypedDict, Optional
 from sklearn.preprocessing import Binarizer
+
+from utils.misc import get_items_on_path
+from utils.vision.transformation import get_image_and_reshape, transform_image_contrast, grayscale_mask
+from utils.vision.models import unet_model
+
+import hydra
+from omegaconf import OmegaConf
 
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 
 
+LOGGER = logging.getLogger(__name__)
 PATH_PARENT = pathlib.Path(__file__).absolute().parents[0]
 
 class y_holder(TypedDict):
@@ -149,18 +154,20 @@ def train(cfg: OmegaConf, model: tf.keras.models.Model, X: np.ndarray, y: np.nda
         model.save("model")
 
 @hydra.main(config_path="configs", config_name="config")
-def main(cfg: OmegaConf, preprocess_data_and_cache: bool = False):
+def main(cfg: OmegaConf, preprocess_data_and_cache: bool = False) -> None:
     """ Compose flow and execute"""
     
-    print(cfg) # make this a logger
+    LOGGER.info(cfg)
     np.random.seed(cfg.project_setup.RANDOM_STATE_N)
     PATH_TRAIN_IMAGE_FOLDER = PATH_PARENT.joinpath(cfg.project_setup.paths.data.TRAIN_IMAGE_FOLDER)
     PATH_TRAIN_METADATA = PATH_PARENT.joinpath(cfg.project_setup.paths.data.TRAIN_METADATA)
     INPUT_IMG_SHAPE = (cfg.preprocessing.INPUT_SHAPE.HEIGHT, cfg.preprocessing.INPUT_SHAPE.WIDTH)
     PATH_CACHE_DATA = PATH_PARENT.joinpath(cfg.project_setup.paths.data.PREPROCESSED_CACHE)
 
-    # load all train images into memory as dictionary with image_id as key and the image (np.ndarray) as value
+    # load all train images into memory as dictionary with 
+    # image_id as key and the image (np.ndarray) as value
     if preprocess_data_and_cache:
+        LOGGER.info(f"Preprocessing data and caching to: {PATH_CACHE_DATA}")
         train_metadata = pd.read_csv(PATH_TRAIN_METADATA)
         train_images_paths = get_items_on_path(PATH_TRAIN_IMAGE_FOLDER)
         train_data = data_pipeline(cfg=cfg, images_path=train_images_paths, 
@@ -173,11 +180,12 @@ def main(cfg: OmegaConf, preprocess_data_and_cache: bool = False):
         
     X, y = prepare_X_and_y(train_data)
 
+    LOGGER.info("Initiate, compile and train model")
     model=unet_model(input_img_shape=(cfg.preprocessing.OUTPUT_SHAPE.HEIGHT, cfg.preprocessing.OUTPUT_SHAPE.WIDTH, 1))
-    model.compile(optimizer = Adam(cfg.training.model.LEARNING_RATE), loss = 'binary_crossentropy', metrics = ['accuracy'])
+    model.compile(optimizer=Adam(cfg.training.model.LEARNING_RATE), loss='binary_crossentropy', metrics=['accuracy'])
     train(cfg, model, X, y)
     
-    
+    LOGGER.info(f"Save outcome in: {pathlib.Path().cwd()}")
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,6 @@
 data/
 outputs/
+multirun/
 logs/
 .ipynb_checkpoints/
 loss_and_accuracy.*
