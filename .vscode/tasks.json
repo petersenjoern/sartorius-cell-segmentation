@@ -6,21 +6,24 @@
         {
             "label": "pip install requirements",
             "type": "shell",
-            "command": "${config:python.pythonPath}/bin/python -m pip install -r ${workspaceFolder}/requirements.txt",
+            "command": "${config:python.pythonPath} -m pip install -r ${workspaceFolder}/requirements.txt",
             "windows": {
                 "command": "${config:python.pythonPath}/Scripts/python -m pip install -r ${workspaceFolder}/requirements.txt"
             },
             "problemMatcher": [],
-            "dependsOn": "pip upgrade"
         },
         {
             "label": "pip upgrade",
             "type": "shell",
-            "command": "${config:python.pythonPath}/bin/python -m pip install --upgrade pip",
+            "command": "${config:python.pythonPath} -m pip install --upgrade pip",
             "windows": {
                 "command": "${config:python.pythonPath}/Scripts/python -m pip install --upgrade pip"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "kaggle dataset version",

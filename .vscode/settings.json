@@ -2,8 +2,6 @@
     "python.pythonPath": "/opt/conda/bin/python",
     "jupyter.notebookFileRoot": "${workspaceFolder}",
     "jupyter.useNotebookEditor": true,
-    "jupyter.allowImportFromNotebook": true,
-    "jupyter.textOutputLimit": 0,
     // Python formatting.
     "python.formatting.provider": "black",
     "python.formatting.blackArgs": [
