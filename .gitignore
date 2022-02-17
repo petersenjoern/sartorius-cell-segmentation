@@ -6,3 +6,5 @@ logs/
 loss_and_accuracy.*
 __pycache__/
 *.py[cod]
+kaggle/
+kaggle.json
