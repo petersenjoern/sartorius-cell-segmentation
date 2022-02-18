@@ -7,7 +7,7 @@ import pandas as pd
 
 from utils.misc import get_items_on_path
 from utils.vision.transformation import rle_encode
-from training import data_pipeline, prepare_X_and_y
+from src.training import data_pipeline, prepare_X_and_y
 
 from sklearn.preprocessing import Binarizer
 

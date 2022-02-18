@@ -4,13 +4,37 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Run Container Tensorflow-GPU",
+            "type": "docker-run",
+            "dockerRun": {
+                "image": "sartorius-tf",
+                "ports": [
+                    {
+                        "containerPort": 8888,
+                        "hostPort": 8888
+                    },
+                    {
+                        "containerPort": 6006,
+                        "hostPort": 6006
+                    }
+                ],
+                "volumes": [
+                    {
+                        "localPath": "${workspaceFolder}",
+                        "containerPath": "/tf/notebooks"
+                    }
+                ],
+                "remove": true,
+                "command": "--runtime=nvidia"
+            }
+        },
+        {
             "label": "pip install requirements",
             "type": "shell",
             "command": "${config:python.pythonPath} -m pip install -r ${workspaceFolder}/requirements.txt",
             "windows": {
                 "command": "${config:python.pythonPath}/Scripts/python -m pip install -r ${workspaceFolder}/requirements.txt"
             },
-            "problemMatcher": [],
         },
         {
             "label": "pip upgrade",
@@ -19,11 +43,6 @@
             "windows": {
                 "command": "${config:python.pythonPath}/Scripts/python -m pip install --upgrade pip"
             },
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
         },
         {
             "label": "kaggle dataset version",

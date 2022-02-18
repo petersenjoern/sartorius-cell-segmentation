@@ -3,4 +3,5 @@ opencv-python-headless
 matplotlib
 scikit-learn-intelex
 hydra-core
+pylint
 # tensorflow==2.6.1

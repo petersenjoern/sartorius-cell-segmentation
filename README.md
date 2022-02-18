@@ -7,7 +7,7 @@ chmod 600 ~/.kaggle/kaggle.json
 ```
 
 - kaggle competitions download sartorius-cell-instance-segmentation
-- unzip data/sartorius-cell-instance-segmentation data/
+- unzip sartorius-cell-instance-segmentation data/input/
 
 ### Kaggle CLI support for commands
 
@@ -15,6 +15,20 @@ kaggle competitions {list, files, download, submit, submissions, leaderboard}
 kaggle datasets {list, files, download, create, version, init}
 kaggle kernels {list, init, push, pull, output, status}
 kaggle config {view, set, unset}
+
+
+### Training with a GPU
+
+You may want to consider to reduce the total power consumption, and thereby reduce the vRAM may temp. To find the ideal configuration, observe your vRAM under heavy GPU load. Tooling on Linux is not good for doing so. I suggest you use windows HWinfo64
+
+```bash
+sudo nvidia-smi -i 0 -pl 230
+watch -n 1 nvidia-smi
+```
+
+### Use docker kaggle container
+
+In VS Code: Ctrl + Shift + P: Remote-Containers: Rebuild and Reopen in Container
 
 ### Create & activate conda env if you are running without docker
 
@@ -24,14 +38,8 @@ conda activate sartorius
 conda install --file requirements.txt
 ```
 
-### Training with a GPU with docker
+### Use docker Tensorflow-GPU container
 
-You may want to consider to reduce the total power consumption, and thereby reduce the vRAM may temp. To find the ideal configuration, observe your vRAM under heavy GPU load. Tooling on Linux is not good for doing so. I suggest you use windows HWinfo64
-
-```bash
-sudo nvidia-smi -i 0 -pl 230
-watch -n 1 nvidia-smi
-```
 
 ```bash
 docker build -t sartorius-tf .
