@@ -8,7 +8,8 @@ import logging
 import pandas as pd
 import numpy as np
 
-from typing import Tuple, List, TypedDict, Optional
+from typing import Tuple, List, Optional
+from typing_extensions import TypedDict
 from sklearn.preprocessing import Binarizer
 
 from utils.misc import get_items_on_path
@@ -24,7 +25,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 
 LOGGER = logging.getLogger(__name__)
-PATH_PARENT = pathlib.Path(__file__).absolute().parents[0]
+PATH_PARENT = pathlib.Path(__file__).absolute().parents[1]
 
 class y_holder(TypedDict):
     """Holds raw RLE masks and binary masks"""
@@ -69,8 +70,6 @@ def data_pipeline(cfg: OmegaConf, images_path: List[pathlib.Path],
         
         if prepare_y:
             # get and save rle_encoding for image
-            if not metadata:
-                raise Exception("metadata for rle have not been passed to the function")
             df_row=metadata[metadata["id"] == image_id]
             annots=df_row["annotation"].tolist()
             data_dict[image_id]["y"]["rle_raw"] = annots
@@ -153,7 +152,7 @@ def train(cfg: OmegaConf, model: tf.keras.models.Model, X: np.ndarray, y: np.nda
         )
         model.save("model")
 
-@hydra.main(config_path="configs", config_name="config")
+@hydra.main(config_path="../configs", config_name="config")
 def main(cfg: OmegaConf, preprocess_data_and_cache: bool = False) -> None:
     """ Compose flow and execute"""
     
@@ -170,10 +169,9 @@ def main(cfg: OmegaConf, preprocess_data_and_cache: bool = False) -> None:
         LOGGER.info(f"Preprocessing data and caching to: {PATH_CACHE_DATA}")
         train_metadata = pd.read_csv(PATH_TRAIN_METADATA)
         train_images_paths = get_items_on_path(PATH_TRAIN_IMAGE_FOLDER)
-        train_data = data_pipeline(cfg=cfg, images_path=train_images_paths, 
-                                   images_shape= INPUT_IMG_SHAPE, metadata=train_metadata)
+        train_data = data_pipeline(cfg=cfg, images_path=train_images_paths, images_shape= INPUT_IMG_SHAPE, metadata=train_metadata)
         with open(PATH_CACHE_DATA, 'wb') as f:
-            pickle.dump(train_data, f, protocol=5)
+            pickle.dump(train_data, f)
     else:
         with open(PATH_CACHE_DATA, 'rb') as f:
             train_data = pickle.load(f)

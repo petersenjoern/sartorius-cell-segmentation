@@ -16,7 +16,6 @@ kaggle datasets {list, files, download, create, version, init}
 kaggle kernels {list, init, push, pull, output, status}
 kaggle config {view, set, unset}
 
-
 ### Training with a GPU
 
 You may want to consider to reduce the total power consumption, and thereby reduce the vRAM may temp. To find the ideal configuration, observe your vRAM under heavy GPU load. Tooling on Linux is not good for doing so. I suggest you use windows HWinfo64
@@ -29,6 +28,8 @@ watch -n 1 nvidia-smi
 ### Use docker kaggle container
 
 In VS Code: Ctrl + Shift + P: Remote-Containers: Rebuild and Reopen in Container
+Spin up jupyter notebook: from within the container ```bash jupyter notebook --allow-root```
+Spin up tensorboard: from within the container ```bash tensorboard --logdir data/working/ --bind_all```
 
 ### Create & activate conda env if you are running without docker
 
@@ -39,7 +40,6 @@ conda install --file requirements.txt
 ```
 
 ### Use docker Tensorflow-GPU container
-
 
 ```bash
 docker build -t sartorius-tf .

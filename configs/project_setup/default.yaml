@@ -1,11 +1,11 @@
 paths:
   data:
-    TRAIN_IMAGE_FOLDER: ./data/train
-    TRAIN_METADATA: ./data/train.csv
-    PREPROCESSED_CACHE: ./data/preprocessed/X_and_y.pkl
-    TEST_IMAGE_FOLDER: ./data/test
+    TRAIN_IMAGE_FOLDER: ./data/input/train
+    TRAIN_METADATA: ./data/input/train.csv
+    PREPROCESSED_CACHE: ./data/working/preprocessed/X_and_y.pkl
+    TEST_IMAGE_FOLDER: ./data/input/test
   model:
-    MODEL_FOLDER: ./data/models
+    MODEL_FOLDER: ./data/working/models
 
 RANDOM_STATE_N: 19
 

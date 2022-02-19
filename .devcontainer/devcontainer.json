@@ -3,7 +3,8 @@
     "image": "gcr.io/kaggle-gpu-images/python", // Remember to pull latest before rebuilding.
     "mounts": [
         "type=bind,source=${localWorkspaceFolder}/data/input,target=/kaggle/input",
-        "type=bind,source=${localWorkspaceFolder}/data/results,target=/kaggle/results"
+        "type=bind,source=${localWorkspaceFolder}/data/results,target=/kaggle/results",
+        "type=bind,source=${localWorkspaceFolder}/data/working,target=/kaggle/working"
     ],
     "extensions": [
         "ms-python.python",
