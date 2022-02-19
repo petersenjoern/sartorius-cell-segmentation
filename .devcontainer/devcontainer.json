@@ -23,10 +23,13 @@
         "python.pythonPath": "/opt/conda/bin/python"
     },
     "containerEnv": {
-        "KAGGLE_MODE": "DEV"
+        "KAGGLE_MODE": "GPU"
     },
     "postCreateCommand": ".devcontainer/setup.sh",
     "postAttachCommand": ".devcontainer/setup-mounted.sh",
     "devPort": 8888,
-    "shutdownAction": "none"
+    "shutdownAction": "none",
+    "runArgs": [
+        "--runtime=nvidia"
+    ]
 }

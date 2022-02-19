@@ -7,20 +7,20 @@ import pandas as pd
 
 from utils.misc import get_items_on_path
 from utils.vision.transformation import rle_encode
-from src.training import data_pipeline, prepare_X_and_y
+from src.training import data_pipeline
 
 from sklearn.preprocessing import Binarizer
 
 from hydra import initialize, compose
-initialize("./configs")
+initialize("../configs")
 
 cfg = compose(config_name="config.yaml")
 np.random.seed(cfg.project_setup.RANDOM_STATE_N)
 
 
 PATH_PARENT = pathlib.Path("__file__").absolute().parents[0]
-PATH_TEST_DATA = PATH_PARENT.joinpath("../input/sartorius-cell-instance-segmentation/test")
-PATH_MODEL = PATH_PARENT.joinpath("outputs", "2022-02-11", "05-54-14", "model")
+PATH_TEST_DATA = PATH_PARENT.joinpath("data/input/test")
+PATH_MODEL = PATH_PARENT.joinpath("data", "working","multirun", "2022-02-12", "12-14-51", "0","model")
 INPUT_IMG_SHAPE = (cfg.preprocessing.INPUT_SHAPE.HEIGHT, cfg.preprocessing.INPUT_SHAPE.WIDTH)
 
 def predict() -> Tuple[List[str], List[str]]:
@@ -59,6 +59,6 @@ if __name__ == "__main__":
         'id': image_ids,
         'predicted': rle_encodings
     })
-    
-    submission.to_csv("submission.csv", index=False)
-    
+
+    results_path = PATH_PARENT.joinpath("data", "results", "submission.csv") #encode here the model used
+    submission.to_csv(results_path, index=False)

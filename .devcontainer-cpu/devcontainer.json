@@ -3,7 +3,8 @@
     "image": "gcr.io/kaggle-images/python", // Remember to pull latest before rebuilding.
     "mounts": [
         "type=bind,source=${localWorkspaceFolder}/data/input,target=/kaggle/input",
-        "type=bind,source=${localWorkspaceFolder}/data/results,target=/kaggle/results"
+        "type=bind,source=${localWorkspaceFolder}/data/results,target=/kaggle/results",
+        "type=bind,source=${localWorkspaceFolder}/data/working,target=/kaggle/working"
     ],
     "extensions": [
         "ms-python.python",
@@ -22,7 +23,7 @@
         "python.pythonPath": "/opt/conda/bin/python"
     },
     "containerEnv": {
-        "KAGGLE_MODE": "DEV"
+        "KAGGLE_MODE": "CPU"
     },
     "postCreateCommand": ".devcontainer/setup.sh",
     "postAttachCommand": ".devcontainer/setup-mounted.sh",
